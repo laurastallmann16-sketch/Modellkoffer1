@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head><body>
+<title>Modellkoffer AR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&display=swap">
+<style>
+/* Layout: Sammlungsschrank — Fächer links, Präparat in der Mitte, Etikett darunter */
+:root{
+  --bg:#EDF1EE; --surface:#FFFFFF; --line:#CFD8D2; --fg:#15201B; --muted:#56655D;
+  --bio:#1E7A55; --bio-soft:#DCEFE4; --chem:#2D5DA6; --chem-soft:#DFE7F5;
+  --stage:#E3E9E5; --label-bg:#FFFFFFEE; --label-fg:#15201B;
+  --display:"Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#101614; --surface:#18201D; --line:#2C3833; --fg:#E6EEE9; --muted:#9BABA2;
+  --bio:#5CC491; --bio-soft:#1D3328; --chem:#83A9EA; --chem-soft:#1D2840;
+  --stage:#141B18; --label-bg:#18201DEE; --label-fg:#E6EEE9; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#101614; --surface:#18201D; --line:#2C3833; --fg:#E6EEE9; --muted:#9BABA2;
+  --bio:#5CC491; --bio-soft:#1D3328; --chem:#83A9EA; --chem-soft:#1D2840;
+  --stage:#141B18; --label-bg:#18201DEE; --label-fg:#E6EEE9; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;padding-inline:16px;padding-block:16px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:16px}
+header{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 16px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(1.6rem,4vw,2.2rem);letter-spacing:-.02em;margin:0;text-wrap:balance}
+h1 span{color:var(--bio)}
+.sub{color:var(--muted);margin:0;font-size:.95rem}
+.main{display:grid;gap:16px;grid-template-columns:1fr}
+@media (min-width:900px){.main{grid-template-columns:270px minmax(0,1fr)}}
+
+/* Bibliothek */
+.lib{display:grid;gap:12px;align-content:start;min-width:0}
+.tabs{display:flex;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px}
+.tabs button{flex:1;border:0;background:transparent;color:var(--muted);font:700 .86rem var(--body);padding:8px 4px;border-radius:9px;cursor:pointer}
+.tabs button[aria-selected="true"][data-sub="bio"]{background:var(--bio-soft);color:var(--bio)}
+.tabs button[aria-selected="true"][data-sub="chem"]{background:var(--chem-soft);color:var(--chem)}
+.tabs button[aria-selected="true"][data-sub="gen"],.tabs button[aria-selected="true"][data-sub="own"]{background:var(--stage);color:var(--fg)}
+.list{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
+@media (min-width:900px){.list{flex-direction:column;overflow:visible}}
+.item{flex:0 0 auto;text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:10px;padding:9px 12px;cursor:pointer;font:inherit;display:grid;gap:1px;min-width:0}
+.item b{font-family:var(--display);font-weight:500;font-size:1rem}
+.item small{color:var(--muted);font-size:.8rem}
+.item[aria-current="true"]{border-color:currentColor}
+.item.bio[aria-current="true"]{color:var(--bio);background:var(--bio-soft)}
+.item.chem[aria-current="true"]{color:var(--chem);background:var(--chem-soft)}
+.item[aria-current="true"] small{color:inherit;opacity:.85}
+.own{display:grid;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;font-size:.92rem}
+.own label.file{display:block;border:1.5px dashed var(--line);border-radius:10px;padding:14px;text-align:center;cursor:pointer;font-weight:700}
+.own label.file:hover{border-color:var(--bio)}
+.own input[type=file]{position:absolute;width:1px;height:1px;opacity:0}
+.own ul{margin:0;padding-left:18px}
+.own a{color:var(--bio)}
+
+.sform{display:flex;gap:6px}
+.sform input{flex:1;min-width:0;font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg)}
+.sform button{font:700 .88rem var(--body);border:0;background:var(--fg);color:var(--bg);padding:8px 12px;border-radius:8px;cursor:pointer}
+.snote{color:var(--muted);font-size:.84rem}
+.snote.err{color:#C2410C}
+.gform{display:grid;gap:8px}
+.gform textarea{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);resize:vertical;min-height:70px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{font:inherit;font-size:.8rem;border:1px solid var(--line);background:var(--bg);color:var(--fg);padding:3px 10px;border-radius:999px;cursor:pointer}
+.grow{display:flex;gap:6px}
+.grow button,#gsave{font:700 .9rem var(--body);border:0;background:var(--bio);color:var(--surface);padding:9px 14px;border-radius:8px;cursor:pointer}
+.grow button:disabled,.sform button:disabled{opacity:.5;cursor:wait}
+button.ghost,#gsave{background:transparent;color:var(--fg);border:1px solid var(--line)}
+.glist{display:grid;gap:6px}
+.glist:not(:empty)::before{content:"Deine erstellten Modelle";font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.item.gen[aria-current="true"]{color:#B45309;background:var(--stage)}
+/* Bühne *//* Bühne */
+.stagecol{display:grid;gap:12px;min-width:0}
+.stage{position:relative;background:var(--stage);border:1px solid var(--line);border-radius:16px;overflow:hidden;height:min(68vh,580px);min-height:340px}
+.stage:fullscreen{border-radius:0;height:100%}
+.stage canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+.labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.labels .hs{position:absolute;left:0;top:0;pointer-events:auto;will-change:transform}
+#armv{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:0;top:0}
+.busy{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-weight:700;pointer-events:none}
+.busy[hidden]{display:none!important}
+.scale{position:absolute;left:12px;bottom:12px;font-size:.78rem;color:var(--muted);background:var(--label-bg);padding:3px 8px;border-radius:6px;font-variant-numeric:tabular-nums;pointer-events:none}
+.armsg{position:absolute;right:12px;top:12px;max-width:260px;font-size:.8rem;background:var(--label-bg);color:var(--fg);border:1px solid var(--line);padding:6px 10px;border-radius:8px}
+.arbtn{position:absolute;right:12px;bottom:12px;border:0;background:var(--bio);color:var(--surface);font:700 1rem var(--body);padding:12px 18px;border-radius:999px;cursor:pointer;box-shadow:0 4px 14px #0003}
+
+.hs{display:flex;align-items:center;gap:6px;border:0;padding:0;background:none;cursor:pointer;font:700 12px var(--body);color:var(--label-fg);transition:opacity .2s}
+.hs::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--bio);border:2px solid var(--surface);box-shadow:0 0 0 1px var(--bio);flex:none}
+.chem-mode .hs::before{background:var(--chem);box-shadow:0 0 0 1px var(--chem)}
+.hs span{background:var(--label-bg);padding:3px 8px;border-radius:999px;border:1px solid var(--line);white-space:nowrap}
+.hs.back{opacity:.3}
+.hs.custom::before{background:#D97706;box-shadow:0 0 0 1px #D97706}
+.nolabels .hs{display:none}
+.quiz .hs:not(.revealed) span{min-width:24px;text-align:center}
+
+.tools{display:flex;flex-wrap:wrap;gap:8px}
+.tools button{border:1px solid var(--line);background:var(--surface);color:var(--fg);font:700 .88rem var(--body);padding:8px 12px;border-radius:999px;cursor:pointer}
+.tools button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+button:focus-visible,a:focus-visible,label.file:focus-within{outline:3px solid var(--chem);outline-offset:2px}
+
+.labelform{position:absolute;left:50%;top:12px;transform:translateX(-50%);display:flex;gap:6px;background:var(--surface);border:1px solid var(--line);padding:8px;border-radius:12px;box-shadow:0 6px 20px #0002;width:min(92%,360px)}
+.labelform input{flex:1;min-width:0;font:inherit;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg)}
+.labelform button{font:700 .9rem var(--body);border:0;background:var(--bio);color:var(--surface);padding:6px 12px;border-radius:8px;cursor:pointer}
+.hint{position:absolute;left:50%;top:12px;transform:translateX(-50%);background:#D97706;color:#fff;font-size:.82rem;font-weight:700;padding:6px 12px;border-radius:999px;white-space:nowrap;max-width:92%;overflow:hidden;text-overflow:ellipsis}
+
+.info{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 20px;display:grid;gap:10px;grid-template-columns:1fr}
+@media (min-width:700px){.info{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);column-gap:28px}}
+.info h2{font-family:var(--display);font-weight:700;font-size:1.45rem;margin:0;letter-spacing:-.01em}
+.tag{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--bio)}
+.chem-mode .tag{color:var(--chem)}
+.formula{font-size:1.05rem;color:var(--muted);margin:2px 0 0}
+.info p{margin:0;max-width:65ch}
+.info h3{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;margin:0 0 6px;color:var(--muted)}
+.info ul{margin:0;padding-left:18px;display:grid;gap:4px}
+.info .col{display:grid;gap:8px;align-content:start;min-width:0}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Modell<span>koffer</span> AR</h1>
+    <p class="sub">3D-Modelle für Biologie und Chemie – drehen, beschriften, abfragen, im Raum platzieren.</p>
+  </header>
+
+  <div class="main">
+    <aside class="lib">
+      <div class="tabs" role="tablist">
+        <button role="tab" id="tab-bio" data-sub="bio" aria-selected="true">Biologie</button>
+        <button role="tab" id="tab-chem" data-sub="chem" aria-selected="false">Chemie</button>
+        <button role="tab" id="tab-gen" data-sub="gen" aria-selected="false">Erstellen</button>
+        <button role="tab" id="tab-own" data-sub="own" aria-selected="false">Eigene</button>
+      </div>
+      <div class="list" id="list"></div>
+      <div class="own gen" id="genbox" hidden>
+        <form id="gform" class="gform">
+          <label for="gq"><b>Was soll Claude bauen?</b></label>
+          <textarea id="gq" rows="3" maxlength="300" placeholder="z. B. Graureiher, Honigbiene, Nervenzelle, Querschnitt durch ein Laubblatt"></textarea>
+          <div class="chips" id="gchips"></div>
+          <div class="grow"><button type="submit" id="gbtn">Modell erstellen</button><button type="button" id="gstop" class="ghost" hidden>Stopp</button></div>
+        </form>
+        <div class="snote" id="gnote">Claude baut das Modell aus Grundformen und beschriftet es mit Fachbegriffen. Das dauert etwa 20 bis 60 Sekunden.</div>
+        <form id="rform" class="gform" hidden>
+          <label for="rq"><b>Anpassen</b></label>
+          <div class="sform"><input id="rq" maxlength="200" placeholder="z. B. Hals länger, Beine gelb" autocomplete="off"><button type="submit" id="rbtn">Ändern</button></div>
+          <button type="button" id="gsave" class="ghost">Als Datei speichern (.json)</button>
+        </form>
+        <div class="gform" id="manual" hidden>
+          <div class="snote"><b>So geht's:</b> 1. Oben das Thema eingeben und „Auftrag kopieren“ tippen. 2. In einem neuen Claude-Chat einfügen und senden. 3. Claudes Antwort komplett kopieren und hier einfügen.</div>
+          <textarea id="mprompt" rows="3" readonly hidden aria-label="Auftrag zum Kopieren"></textarea>
+          <textarea id="mpaste" rows="4" placeholder="Antwort von Claude hier einfügen" aria-label="Antwort von Claude"></textarea>
+          <div class="grow"><button type="button" id="mshow">Modell anzeigen</button></div>
+        </div>
+        <div class="glist" id="glist"></div>
+      </div>
+      <div class="own" id="ownbox" hidden>
+        <label class="file">Eigenes Modell öffnen (.glb oder .json)
+          <input type="file" id="upload" accept=".glb,.json,model/gltf-binary,application/json">
+        </label>
+        <div>Hier öffnest du Modelle, die du unter „Erstellen“ gespeichert hast (.json), oder fertige 3D-Modelle (.glb), z. B. von:</div>
+        <ul>
+          <li><a href="https://3d.nih.gov" target="_blank" rel="noopener">NIH 3D</a> – Proteine, Anatomie, Viren</li>
+          <li><a href="https://3d.si.edu" target="_blank" rel="noopener">Smithsonian 3D</a> – Fossilien, Tiere, Pflanzen</li>
+        </ul>
+        <div>Danach mit <b>Eigene Beschriftung</b> Strukturen selbst benennen.</div>
+      </div>
+    </aside>
+
+    <section class="stagecol">
+      <div class="stage" id="stage">
+        <div class="labels" id="labels"></div>
+        <button class="arbtn" id="arbtn" hidden>Im Raum ansehen</button>
+        <div class="busy" id="busy">Modell wird gebaut …</div>
+        <div class="scale" id="scale"></div>
+        <div class="armsg" id="armsg" hidden></div>
+        <div class="hint" id="hint" hidden>Tippe auf die Stelle, die du beschriften willst</div>
+        <form class="labelform" id="labelform" hidden>
+          <input id="labelinput" maxlength="40" placeholder="z. B. Zellkern" autocomplete="off">
+          <button type="submit">Setzen</button>
+        </form>
+      </div>
+      <div class="tools">
+        <button id="t-labels" aria-pressed="true">Beschriftung</button>
+        <button id="t-quiz" aria-pressed="false">Quiz-Modus</button>
+        <button id="t-rotate" aria-pressed="true">Drehen</button>
+        <button id="t-custom" aria-pressed="false">Eigene Beschriftung</button>
+        <button id="t-full">Vollbild für Beamer</button>
+      </div>
+      <article class="info" id="info"></article>
+    </section>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/exporters/GLTFExporter.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/environments/RoomEnvironment.js"></script>
+<script>
+const AR_MSG="AR ist auf diesem Gerät nicht verfügbar. Nutze ein aktuelles Android-Handy mit Chrome oder ein iPhone/iPad mit Safari.";
+const V = (x=0,y=0,z=0)=>new THREE.Vector3(x,y,z);
+const matCache = new Map();
+function M(color, op){ const k=color+"|"+(op??1); if(!matCache.has(k)){ const m=new THREE.MeshStandardMaterial({color, roughness:.55, metalness:0}); if(op!=null){m.transparent=true;m.opacity=op;m.depthWrite=false;} matCache.set(k,m);} return matCache.get(k); }
+function mesh(geo, mat, pos=[0,0,0], scale=null){ const m=new THREE.Mesh(geo,mat); m.position.set(...pos); if(scale) m.scale.set(...scale); return m; }
+function rng(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function wp(obj, off=[0,0,0]){ obj.updateWorldMatrix(true,false); return obj.localToWorld(V(...off)); }
+function cyl(a,b,r,mat,seg=14){ const d=V().subVectors(b,a); const len=d.length(); const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,len,seg),mat); m.position.copy(a).add(b).multiplyScalar(.5); m.quaternion.setFromUnitVectors(V(0,1,0), d.normalize()); return m; }
+function sph(r, mat, p, seg=24){ const m=new THREE.Mesh(new THREE.SphereGeometry(r,seg,Math.round(seg*.7)),mat); m.position.copy(p); return m; }
+
+/* ---------- Biologie ---------- */
+function tierzelle(){
+  const g=new THREE.Group(), r=rng(7), H=[];
+  const memb=mesh(new THREE.SphereGeometry(10,64,48),M("#F0A98C",.26),[0,0,0],[1,.8,1]); g.add(memb);
+  const nuc=mesh(new THREE.SphereGeometry(3.2,48,32),M("#7A5AA8",.55),[-1,.3,0]); g.add(nuc);
+  const nucleolus=mesh(new THREE.SphereGeometry(1.1,32,20),M("#3D2668"),[-1.3,.8,.4]); g.add(nucleolus);
+  const inCell=p=>(p.x/8.6)**2+(p.y/6.6)**2+(p.z/8.6)**2<1 && p.distanceTo(V(-1,.3,0))>4.4;
+  const rp=()=>{ for(;;){ const p=V((r()*2-1)*8.6,(r()*2-1)*6.6,(r()*2-1)*8.6); if(inCell(p)) return p; } };
+  // ER
+  const erMat=M("#4A9BD1"), riboMat=M("#1F3A5F"); let er0;
+  for(let i=0;i<4;i++){ const R=4.3+i*.75; const er=new THREE.Mesh(new THREE.TorusGeometry(R,.2,8,72,Math.PI*1.05),erMat); er.position.set(-1,.3,0); er.rotation.set(.35*i-.5,.25*i,Math.PI*.55+i*.12); g.add(er); if(i===1) er0=er;
+    for(let k=0;k<22;k++){ const t=k/21*Math.PI*1.05; const rb=sph(.17,riboMat,V((R+.3)*Math.cos(t),(R+.3)*Math.sin(t),0),10); er.add(rb);} }
+  // Golgi
+  const golgi=new THREE.Group(); golgi.position.set(5.2,-2.2,1.6); golgi.rotation.set(.4,-.3,.2); g.add(golgi);
+  for(let i=0;i<4;i++){ const t=new THREE.Mesh(new THREE.TorusGeometry(2.3-i*.2,.26,8,40,2.0),M("#E9B949")); t.rotation.z=-1.0; t.position.x=i*.62; t.scale.z=.55; golgi.add(t); }
+  for(let i=0;i<5;i++) golgi.add(sph(.28,M("#E9B949"),V(2.6+r()*1.2,(r()*2-1)*1.8,(r()*2-1)*.8),12));
+  // Mitochondrien
+  const mitoMat=M("#E0703A"); let mito0;
+  for(let i=0;i<6;i++){ const m=new THREE.Mesh(new THREE.CapsuleGeometry(.65,1.9,8,18),mitoMat); m.position.copy(rp()); m.rotation.set(r()*3,r()*3,r()*3); g.add(m); if(!i) mito0=m; }
+  // Lysosomen
+  let lyso0; for(let i=0;i<4;i++){ const l=sph(.55,M("#C2417A"),rp()); g.add(l); if(!i) lyso0=l; }
+  // freie Ribosomen
+  for(let i=0;i<45;i++) g.add(sph(.15,riboMat,rp(),8));
+  // Zentriolen
+  const cen=new THREE.Group(); cen.position.set(1.8,3.8,2.6); g.add(cen);
+  const c1=mesh(new THREE.CylinderGeometry(.25,.25,1.1,12),M("#2E9E8F")); cen.add(c1); const c2=c1.clone(); c2.rotation.z=Math.PI/2; c2.position.x=.5; cen.add(c2);
+  H.push(["Zellmembran",wp(memb,[0,10,0])],["Zellkern",wp(nuc,[0,0,3.2])],["Kernkörperchen",wp(nucleolus)],["Raues ER mit Ribosomen",wp(er0,[5.05*Math.cos(1.6),5.05*Math.sin(1.6),0])],
+    ["Golgi-Apparat",wp(golgi,[.9,1.6,0])],["Mitochondrium",wp(mito0)],["Lysosom",wp(lyso0)],["Zentriolen",wp(cen)],["Cytoplasma",V(5.5,3.2,4.5)]);
+  return {g,H};
+}
+function pflanzenzelle(){
+  const g=new THREE.Group(), r=rng(11), H=[];
+  const wall=mesh(new THREE.BoxGeometry(18,12,12),M("#8C9A3A",.2)); g.add(wall);
+  const memb=mesh(new THREE.BoxGeometry(17.1,11.1,11.1),M("#B9DB6E",.14)); g.add(memb);
+  const vac=mesh(new THREE.SphereGeometry(1,48,32),M("#7FB8E0",.42),[1.6,-.2,0],[6.4,4,4.2]); g.add(vac);
+  const nuc=mesh(new THREE.SphereGeometry(2,40,28),M("#7A5AA8",.6),[-6,2.2,1.8]); g.add(nuc);
+  g.add(mesh(new THREE.SphereGeometry(.7,24,16),M("#3D2668"),[-6,2.5,2.1]));
+  const inVac=p=>((p.x-1.6)/7.2)**2+((p.y+.2)/4.8)**2+(p.z/5)**2<1;
+  const rp=()=>{ for(;;){ const p=V((r()*2-1)*7.8,(r()*2-1)*4.8,(r()*2-1)*4.8); if(!inVac(p)&&p.distanceTo(V(-6,2.2,1.8))>2.8) return p; } };
+  let ch0; for(let i=0;i<14;i++){ const c=mesh(new THREE.SphereGeometry(1,28,18),M("#2F8A3A"),[0,0,0],[1.35,.55,.85]); c.position.copy(rp()); c.rotation.set(r()*3,r()*3,r()*3); g.add(c);
+    for(let k=-1;k<=1;k++) c.add(mesh(new THREE.CylinderGeometry(.28,.28,.25,14),M("#1B5E27"),[k*.5,0,0])); if(!i) ch0=c; }
+  let m0; for(let i=0;i<4;i++){ const m=new THREE.Mesh(new THREE.CapsuleGeometry(.5,1.4,8,16),M("#E0703A")); m.position.copy(rp()); m.rotation.set(r()*3,r()*3,r()*3); g.add(m); if(!i) m0=m; }
+  H.push(["Zellwand",V(-2,6,6)],["Zellmembran",V(8.55,-3.5,3)],["Vakuole",wp(vac,[0,0,1])],["Zellkern",wp(nuc,[0,0,2])],["Chloroplast",wp(ch0)],["Mitochondrium",wp(m0)],["Cytoplasma",V(-7,-4,4.5)]);
+  return {g,H};
+}
+function bakterium(){
+  const g=new THREE.Group(), r=rng(3), H=[];
+  const wall=new THREE.Mesh(new THREE.CapsuleGeometry(3,10,16,40),M("#C9A25A",.28)); wall.rotation.z=Math.PI/2; g.add(wall);
+  const memb=new THREE.Mesh(new THREE.CapsuleGeometry(2.6,9.8,16,40),M("#E7C98A",.2)); memb.rotation.z=Math.PI/2; g.add(memb);
+  const dna=new THREE.Mesh(new THREE.TorusKnotGeometry(1.9,.13,260,8,3,7),M("#3B5BDB")); dna.scale.set(1.5,.9,.9); g.add(dna);
+  const pl=mesh(new THREE.TorusGeometry(.7,.1,8,40),M("#D9480F"),[4.2,1,.6]); pl.rotation.set(.8,.3,0); g.add(pl);
+  for(let i=0;i<70;i++){ const a=r()*Math.PI*2, rr=Math.sqrt(r())*2.2; const p=V((r()*2-1)*6.5,rr*Math.cos(a),rr*Math.sin(a)); if(p.length()<2.3&&Math.abs(p.x)<3) continue; g.add(sph(.14,M("#1F3A5F"),p,8)); }
+  let pil0; for(let i=0;i<16;i++){ const a=r()*Math.PI*2, x=(r()*2-1)*4.5; const s=V(x,3*Math.cos(a),3*Math.sin(a)); const e=s.clone().add(V(0,Math.cos(a),Math.sin(a)).multiplyScalar(1.6)); const p=cyl(s,e,.05,M("#9C7B4A"),6); g.add(p); if(!i) pil0=e; }
+  const pts=[]; for(let i=0;i<=120;i++){ const t=i/120; pts.push(V(-7.9-t*14,.8*Math.sin(t*6*Math.PI),.8*(Math.cos(t*6*Math.PI)-1))); }
+  const fl=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),240,.15,8),M("#8A6D3B")); g.add(fl);
+  H.push(["Zellwand",V(0,3,0)],["Zellmembran",V(-5.5,0,2.6)],["Kernäquivalent (Bakterien-DNA)",V(0,0,1.6)],["Plasmid",wp(pl)],["Ribosomen",V(5.6,-1.2,1)],["Geißel (Flagellum)",pts[60]],["Fimbrien",pil0]);
+  return {g,H};
+}
+function dna(){
+  const g=new THREE.Group(), H=[]; const seq="ATGCGTACGTTAGCCATGCA"; const comp={A:"T",T:"A",G:"C",C:"G"};
+  const col={A:"#E04F5F",T:"#F2C94C",G:"#3AA36B",C:"#3C7DD9"}; const R=1, rise=.34, tw=Math.PI/5, off=2.4;
+  const A=[],B=[]; const n=seq.length; const y0=-(n-1)*rise/2;
+  for(let i=0;i<n;i++){ const t=i*tw, y=y0+i*rise; A.push(V(R*Math.cos(t),y,R*Math.sin(t))); B.push(V(R*Math.cos(t+off),y,R*Math.sin(t+off))); }
+  const bb=(P,c)=>{ g.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(P),n*12,.08,8),M(c))); P.forEach(p=>g.add(sph(.15,M(c),p,14))); };
+  bb(A,"#8E9AAF"); bb(B,"#B0A08A");
+  let at,gc;
+  seq.split("").forEach((b,i)=>{ const mid=A[i].clone().lerp(B[i],.5); const a=A[i].clone().lerp(B[i],.1), z=A[i].clone().lerp(B[i],.9);
+    g.add(cyl(a,mid,.085,M(col[b]),10)); g.add(cyl(mid,z,.085,M(col[comp[b]]),10));
+    if(b==="A"&&!at&&i>2) at=mid; if(b==="G"&&!gc&&i>8) gc=mid; });
+  H.push(["Zucker-Phosphat-Rückgrat",A[4]],["Basenpaar A–T (2 H-Brücken)",at],["Basenpaar G–C (3 H-Brücken)",gc],["eine Windung ≈ 10 Basenpaare",B[15]]);
+  return {g,H};
+}
+function bluete(){
+  const g=new THREE.Group(), H=[];
+  g.add(mesh(new THREE.CylinderGeometry(.35,.4,8,16),M("#4D8A3A"),[0,-4.2,0]));
+  const bod=mesh(new THREE.SphereGeometry(.9,24,16),M("#6FA84A"),[0,-.2,0],[1,.5,1]); g.add(bod);
+  const ring=(n,a0,L,w,tilt,color,y)=>{ const out=[]; for(let i=0;i<n;i++){ const piv=new THREE.Group(); piv.rotation.y=a0+i*2*Math.PI/n; piv.position.y=y; const hold=new THREE.Group(); hold.rotation.x=tilt; piv.add(hold);
+      const p=mesh(new THREE.SphereGeometry(1,28,14),M(color),[0,0,L*.55],[w,.09,L*.55]); hold.add(p); g.add(piv); out.push(p);} return out; };
+  const kelch=ring(5,0,3.2,.75,.35,"#3F7F31",-.25);
+  const krone=ring(5,Math.PI/5,4.6,1.35,-.42,"#E85D8A",0);
+  let anth0,fil0; for(let i=0;i<8;i++){ const piv=new THREE.Group(); piv.rotation.y=i*Math.PI/4+.2; g.add(piv); const hold=new THREE.Group(); hold.rotation.x=.28; hold.position.z=.55; piv.add(hold);
+    const f=mesh(new THREE.CylinderGeometry(.05,.06,3,8),M("#F4E6B8"),[0,1.5,0]); hold.add(f); const a=new THREE.Mesh(new THREE.CapsuleGeometry(.16,.35,6,12),M("#F2B705")); a.position.set(0,3.1,0); a.rotation.x=Math.PI/2; hold.add(a); if(!i){anth0=a;fil0=f;} }
+  const ov=mesh(new THREE.SphereGeometry(.75,28,18),M("#9CC55A"),[0,.6,0],[1,1.15,1]); g.add(ov);
+  const gr=mesh(new THREE.CylinderGeometry(.1,.13,2.6,12),M("#B6D36A"),[0,2.8,0]); g.add(gr);
+  const na=mesh(new THREE.SphereGeometry(.32,20,14),M("#D4C640"),[0,4.15,0],[1,.6,1]); g.add(na);
+  H.push(["Kronblatt",wp(krone[0],[0,1,.6])],["Kelchblatt",wp(kelch[2],[0,1,.5])],["Staubbeutel",wp(anth0)],["Staubfaden",wp(fil0)],["Narbe",wp(na,[0,1,0])],["Griffel",wp(gr)],["Fruchtknoten",wp(ov,[0,0,1])],["Blütenboden",wp(bod,[0,0,1])]);
+  return {g,H};
+}
+
+/* ---------- Chemie ---------- */
+const EL={H:{c:"#F1F3F5",r:.26,n:"Wasserstoff"},C:{c:"#3B3F45",r:.38,n:"Kohlenstoff"},N:{c:"#3B6FD9",r:.37,n:"Stickstoff"},O:{c:"#E03131",r:.36,n:"Sauerstoff"}};
+function molecule(atoms,bonds,extra){
+  const g=new THREE.Group(), H=[]; const P=atoms.map(a=>V(a[1],a[2],a[3]));
+  atoms.forEach((a,i)=>g.add(sph(EL[a[0]].r,M(EL[a[0]].c),P[i],32)));
+  bonds.forEach(([i,j,o=1])=>{ const a=P[i],b=P[j]; const d=V().subVectors(b,a).normalize(); let perp=V().crossVectors(d,V(0,0,1)); if(perp.length()<.1) perp=V().crossVectors(d,V(0,1,0)); perp.normalize().multiplyScalar(.13);
+    const offs=o===2?[perp,perp.clone().negate()]:[V()]; offs.forEach(off=>{ const s=a.clone().add(off), e=b.clone().add(off), m=s.clone().lerp(e,.5);
+      g.add(cyl(s,m,o===2?.07:.09,M(EL[atoms[i][0]].c))); g.add(cyl(m,e,o===2?.07:.09,M(EL[atoms[j][0]].c))); }); });
+  const seen=new Set(); atoms.forEach((a,i)=>{ if(seen.has(a[0])) return; seen.add(a[0]); H.push([`${a[0]} · ${EL[a[0]].n}`,P[i].clone().add(V(0,EL[a[0]].r,0))]); });
+  if(extra) extra(g,H,P);
+  return {g,H};
+}
+function lobe(g,at,dir){ const d=dir.clone().normalize(); const m=mesh(new THREE.SphereGeometry(1,24,16),M("#F783AC",.38),[0,0,0],[.3,.3,.5]); m.position.copy(at).add(d.clone().multiplyScalar(.62)); m.quaternion.setFromUnitVectors(V(0,0,1),d); g.add(m); return m.position.clone().add(d.clone().multiplyScalar(.45)); }
+const t=1.09/Math.sqrt(3);
+const MOL={
+  wasser:()=>molecule([["O",0,0,0],["H",.757,.586,0],["H",-.757,.586,0]],[[0,1],[0,2]],(g,H,P)=>{ const p=lobe(g,P[0],V(0,-.58,.82)); lobe(g,P[0],V(0,-.58,-.82)); H.push(["freies Elektronenpaar",p],["polare Atombindung",P[0].clone().lerp(P[1],.5)]); }),
+  co2:()=>molecule([["C",0,0,0],["O",1.16,0,0],["O",-1.16,0,0]],[[0,1,2],[0,2,2]],(g,H,P)=>H.push(["Doppelbindung",P[0].clone().lerp(P[1],.5).add(V(0,.2,0))])),
+  methan:()=>molecule([["C",0,0,0],["H",t,t,t],["H",t,-t,-t],["H",-t,t,-t],["H",-t,-t,t]],[[0,1],[0,2],[0,3],[0,4]],(g,H,P)=>H.push(["Tetraeder-Winkel 109,5°",V(0,.15,0).add(P[1].clone().multiplyScalar(.35)).add(P[3].clone().multiplyScalar(.35))])),
+  ammoniak:()=>molecule([["N",0,0,0],["H",.94,0,-.38],["H",-.47,.814,-.38],["H",-.47,-.814,-.38]],[[0,1],[0,2],[0,3]],(g,H,P)=>{ const p=lobe(g,P[0],V(0,0,1)); H.push(["freies Elektronenpaar",p]); }),
+  ethanol:()=>molecule([["C",0,0,0],["C",1.51,0,0],["O",2.0,1.35,0],["H",2.96,1.33,0],["H",-.37,-1.03,0],["H",-.37,.51,.89],["H",-.37,.51,-.89],["H",1.88,-.51,.89],["H",1.88,-.51,-.89]],
+    [[0,1],[1,2],[2,3],[0,4],[0,5],[0,6],[1,7],[1,8]],(g,H,P)=>H.push(["Hydroxygruppe (–OH)",P[2].clone().lerp(P[3],.5).add(V(0,.35,0))])),
+  benzol:()=>{ const at=[],bd=[]; for(let i=0;i<6;i++){ const a=i*Math.PI/3; at.push(["C",1.39*Math.cos(a),1.39*Math.sin(a),0]); } for(let i=0;i<6;i++){ const a=i*Math.PI/3; at.push(["H",2.48*Math.cos(a),2.48*Math.sin(a),0]); bd.push([i,(i+1)%6,i%2?1:2],[i,i+6]); }
+    return molecule(at,bd,(g,H)=>{ const ring=new THREE.Mesh(new THREE.TorusGeometry(.8,.06,8,48),M("#F59F00",.5)); g.add(ring); H.push(["delokalisierte π-Elektronen",V(0,.8,0)]); }); },
+  nacl:()=>{ const g=new THREE.Group(), H=[], d=2.82; let na,cl,mid;
+    for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++)for(let k=-1;k<=1;k++){ const p=V(i*d,j*d,k*d); const isNa=(i+j+k+3)%2===0; const s=sph(isNa?.55:.95,M(isNa?"#8E5BD6":"#4CB868"),p,32); g.add(s);
+      if(isNa&&!na&&i===1) na=p.clone().add(V(0,.55,0)); if(!isNa&&!cl&&i===-1) cl=p.clone().add(V(0,.95,0)); if(!i&&!j&&!k) mid=p;
+      [[1,0,0],[0,1,0],[0,0,1]].forEach(([a,b,c])=>{ if(i+a<=1&&j+b<=1&&k+c<=1) g.add(cyl(p,V((i+a)*d,(j+b)*d,(k+c)*d),.06,M("#9AA5B1"),8)); }); }
+    H.push(["Na⁺ · Natrium-Ion",na],["Cl⁻ · Chlorid-Ion",cl],["Koordinationszahl 6",V(0,0,.9)]); return {g,H}; }
+};
+
+/* ---------- Katalog ---------- */
+const CAT=[
+ {id:"tierzelle",sub:"bio",name:"Tierzelle",small:"Eukaryot, Organellen",size:.5,build:tierzelle,
+  text:"Schematische Tierzelle mit durchsichtiger Membran. Der Zellkern ist halbtransparent, damit das Kernkörperchen sichtbar bleibt. Ribosomen sitzen am rauen ER und frei im Cytoplasma.",
+  tips:["Vergleich mit der Pflanzenzelle: Was fehlt hier?","Quiz-Modus als Einstieg: Organellen per Nummer zuordnen","Modell im AR-Modus auf den Lehrertisch stellen und herumgehen"]},
+ {id:"pflanzenzelle",sub:"bio",name:"Pflanzenzelle",small:"Zellwand, Vakuole, Chloroplasten",size:.5,build:pflanzenzelle,
+  text:"Quaderförmige Pflanzenzelle mit Zellwand, großer Zentralvakuole und Chloroplasten mit angedeuteten Thylakoidstapeln (Grana).",
+  tips:["Gemeinsamkeiten und Unterschiede zur Tierzelle tabellarisch sichern","Mikroskopiebild der Wasserpest daneben zeigen"]},
+ {id:"bakterium",sub:"bio",name:"Bakterienzelle",small:"Prokaryot",size:.5,build:bakterium,
+  text:"Stäbchenförmiges Bakterium ohne Zellkern. Die DNA liegt frei als Kernäquivalent, dazu ein Plasmid, Ribosomen, Fimbrien und eine Geißel.",
+  tips:["Prokaryot vs. Eukaryot: Wo liegt die DNA?","Anknüpfung an Antibiotika und Resistenz über Plasmide"]},
+ {id:"dna",sub:"bio",name:"DNA-Doppelhelix",small:"20 Basenpaare",size:.5,build:dna,
+  text:"Doppelstrang mit Zucker-Phosphat-Rückgrat und komplementären Basen: Adenin (rot) – Thymin (gelb), Guanin (grün) – Cytosin (blau). Eine Windung umfasst etwa 10 Basenpaare.",
+  tips:["Komplementäre Basenpaarung entdecken lassen","Gegenstrang einer Sequenz aufschreiben lassen und am Modell prüfen"]},
+ {id:"bluete",sub:"bio",name:"Blüte",small:"Bau einer Zwitterblüte",size:.35,build:bluete,
+  text:"Schematische Zwitterblüte mit fünf Kelch- und Kronblättern, acht Staubblättern und einem Stempel aus Fruchtknoten, Griffel und Narbe.",
+  tips:["Mit echter Blüte (z. B. Kirsche, Raps) vergleichen und Legebild erstellen","Weg des Pollens bei der Bestäubung am Modell zeigen"]},
+ {id:"wasser",sub:"chem",name:"Wasser",small:"H₂O · gewinkelt, 104,5°",size:.3,build:MOL.wasser,
+  text:"Gewinkeltes Molekül. Die zwei freien Elektronenpaare am Sauerstoff (rosa) drücken die Bindungen zusammen. Die polaren Bindungen machen Wasser zum Dipol.",
+  tips:["Elektronenpaarabstoßungsmodell (EPA) anschaulich machen","Überleitung zu Wasserstoffbrücken und Siedepunkt"]},
+ {id:"co2",sub:"chem",name:"Kohlenstoffdioxid",small:"CO₂ · linear, 180°",size:.3,build:MOL.co2,
+  text:"Lineares Molekül mit zwei Doppelbindungen. Die Ladungsschwerpunkte fallen zusammen, daher ist CO₂ trotz polarer Bindungen kein Dipol.",
+  tips:["Gegenüberstellung mit Wasser: Warum ist nur eines ein Dipol?"]},
+ {id:"methan",sub:"chem",name:"Methan",small:"CH₄ · Tetraeder, 109,5°",size:.3,build:MOL.methan,
+  text:"Einfachster Kohlenwasserstoff. Die vier Bindungen zeigen in die Ecken eines Tetraeders.",
+  tips:["Tetraeder mit Luftballons nachbauen und mit dem Modell vergleichen"]},
+ {id:"ammoniak",sub:"chem",name:"Ammoniak",small:"NH₃ · Pyramide, 107°",size:.3,build:MOL.ammoniak,
+  text:"Trigonal-pyramidales Molekül mit einem freien Elektronenpaar am Stickstoff.",
+  tips:["Bindungswinkel-Reihe CH₄ → NH₃ → H₂O erklären lassen"]},
+ {id:"ethanol",sub:"chem",name:"Ethanol",small:"C₂H₅OH · Alkohol",size:.3,build:MOL.ethanol,
+  text:"Alkohol mit Ethylrest und Hydroxygruppe. Die OH-Gruppe macht das Molekül mit Wasser mischbar.",
+  tips:["Hydrophiler und hydrophober Teil farbig zeigen lassen"]},
+ {id:"benzol",sub:"chem",name:"Benzol",small:"C₆H₆ · aromatisch",size:.3,build:MOL.benzol,
+  text:"Gezeigt ist eine Kekulé-Grenzformel mit wechselnden Doppelbindungen. Der orange Ring deutet die tatsächlich delokalisierten π-Elektronen an.",
+  tips:["Mesomerie: Warum sind alle C–C-Bindungen gleich lang?"]},
+ {id:"nacl",sub:"chem",name:"Natriumchlorid",small:"NaCl · Ionengitter",size:.35,build:MOL.nacl,
+  text:"Ausschnitt aus dem kubischen Ionengitter. Jedes Natrium-Ion ist von sechs Chlorid-Ionen umgeben und umgekehrt. Die Größenverhältnisse der Ionen stimmen ungefähr.",
+  tips:["Warum Salz hart und spröde ist: Gitter verschieben lassen","Kochsalzkristall unter der Lupe dazu betrachten"]},
+];
+
+
+/* ---------- Viewer ---------- */
+const showErr=msg=>{ const b=document.getElementById("busy"); if(b){ b.hidden=false; b.textContent="Fehler: "+String(msg||"unbekannt").slice(0,160); } };
+window.addEventListener("error",e=>showErr(e.message));
+window.addEventListener("unhandledrejection",e=>{ const r=e.reason; showErr(r&&(r.message||r.code)||r); });
+const esc=x=>String(x??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const stage=document.getElementById("stage"), busy=document.getElementById("busy"), labelsEl=document.getElementById("labels");
+const listEl=document.getElementById("list"), info=document.getElementById("info"), ownbox=document.getElementById("ownbox");
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+let renderer, scene, camera, controls, root=null;
+try{
+  renderer=new THREE.WebGLRenderer({antialias:true,alpha:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.outputEncoding=THREE.sRGBEncoding;
+  stage.prepend(renderer.domElement);
+  scene=new THREE.Scene();
+  try{ const pm=new THREE.PMREMGenerator(renderer); scene.environment=pm.fromScene(new THREE.RoomEnvironment(),.04).texture; }catch(_){ }
+  scene.add(new THREE.HemisphereLight(0xffffff,0x8899aa,.6)); const dl=new THREE.DirectionalLight(0xffffff,.8); dl.position.set(1,2,1.5); scene.add(dl);
+  camera=new THREE.PerspectiveCamera(35,1,.005,50);
+  controls=new THREE.OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.autoRotate=!reduce; controls.autoRotateSpeed=1.4; controls.enablePan=false;
+}catch(e){ busy.textContent="3D-Grafik (WebGL) ist in diesem Browser nicht verfügbar."; throw e; }
+function resize(){ const w=stage.clientWidth,h=stage.clientHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); }
+new ResizeObserver(resize).observe(stage); resize();
+
+const cache=new Map(), custom=new Map();
+let current=null, sub="bio", quiz=false, labelMode=false, pending=null, hsList=[];
+
+function normalize(g,target){
+  g.updateMatrixWorld(true);
+  const box=new THREE.Box3().setFromObject(g), size=box.getSize(V()), c=box.getCenter(V());
+  const s=target/Math.max(size.x,size.y,size.z);
+  const r=new THREE.Group(); g.scale.multiplyScalar(s); g.position.sub(c).multiplyScalar(s); r.add(g); r.updateMatrixWorld(true);
+  return {r,c,s,dims:size.multiplyScalar(s)};
+}
+function getModel(item){
+  if(cache.has(item.id)) return cache.get(item.id);
+  const {g,H}=item.build(); const n=normalize(g,item.size);
+  const out={root:n.r, hs:H.filter(h=>h[1]).map(([nm,p])=>({n:nm,p:p.clone().sub(n.c).multiplyScalar(n.s)})), dims:n.dims};
+  cache.set(item.id,out); return out;
+}
+function setRoot(r,dims){
+  if(root) scene.remove(root); root=r; scene.add(r);
+  const d=Math.max(dims.x,dims.y,dims.z);
+  camera.position.set(d*.55,d*.45,d*2.1); controls.target.set(0,0,0); controls.minDistance=d*.6; controls.maxDistance=d*6; controls.update();
+}
+
+/* Beschriftungen */
+function addHotspot(name,p,n,isCustom){
+  const b=document.createElement("button"); b.type="button"; b.className="hs"+(isCustom?" custom":"");
+  b.dataset.name=name; b.dataset.n=n; b.appendChild(document.createElement("span"));
+  b.addEventListener("click",e=>{ e.stopPropagation(); if(quiz){ b.classList.toggle("revealed"); paint(b);} });
+  paint(b); labelsEl.appendChild(b); hsList.push({el:b,p});
+}
+function paint(b){ b.querySelector("span").textContent = quiz && !b.classList.contains("revealed") ? b.dataset.n : (quiz? b.dataset.n+" · ":"")+b.dataset.name; }
+function renderHotspots(){
+  labelsEl.innerHTML=""; hsList=[]; if(!current) return; let n=1;
+  (current.hs||[]).forEach(h=>addHotspot(h.n,h.p,n++));
+  (custom.get(current.key)||[]).forEach(h=>addHotspot(h.n,h.p,n++,true));
+}
+const tmp=V(), camDir=V();
+function placeLabels(){
+  const w=stage.clientWidth,h=stage.clientHeight; camDir.copy(camera.position).normalize();
+  for(const {el,p} of hsList){ tmp.copy(p).project(camera); const x=(tmp.x+1)/2*w-6, y=(1-tmp.y)/2*h-9;
+    el.style.transform=`translate(${x}px,${y}px)`; const len=p.length(); el.classList.toggle("back", len>1e-4 && p.dot(camDir)/len < -.15); }
+}
+(function loop(){ requestAnimationFrame(loop); controls.update(); renderer.render(scene,camera); placeLabels(); })();
+
+function fmt(m){ return m>=1? m.toFixed(2).replace(".",",")+" m" : Math.round(m*100)+" cm"; }
+function show(item){
+  document.body.classList.toggle("chem-mode", item.sub==="chem");
+  document.querySelectorAll(".item").forEach(b=>b.setAttribute("aria-current", b.dataset.id===item.id?"true":"false"));
+  const tag=item.sub==="bio"?"Biologie":item.sub==="chem"?"Chemie":"Von Claude erstellt";
+  info.innerHTML=`<div class="col"><span class="tag">${tag}</span><h2>${esc(item.name)}</h2><p class="formula">${esc(item.small)}</p><p>${esc(item.text)}</p></div>
+    <div class="col"><h3>Im Unterricht</h3><ul>${item.tips.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>${item.spec?'<p class="snote">Von Claude aus Grundformen gebaut. Bitte fachlich prüfen, bevor du es im Unterricht zeigst.</p>':""}</div>`;
+  document.getElementById("rform").hidden=!item.spec;
+  try{
+    const m=getModel(item); current={key:item.id,hs:m.hs,item,root:m.root}; setRoot(m.root,m.dims); renderHotspots(); busy.hidden=true;
+    document.getElementById("scale").textContent="Größe im Raum: "+fmt(Math.max(m.dims.x,m.dims.y,m.dims.z));
+  }catch(e){ busy.hidden=false; busy.textContent="Das Modell konnte nicht gebaut werden."; console.error(e); }
+  prepareAR();
+}
+
+function renderList(){
+  listEl.innerHTML=""; ownbox.hidden = sub!=="own"; document.getElementById("genbox").hidden = sub!=="gen"; listEl.hidden = sub==="own"||sub==="gen";
+  CAT.filter(c=>c.sub===sub).forEach(c=>{ const b=document.createElement("button"); b.className="item "+c.sub; b.dataset.id=c.id; b.type="button";
+    b.innerHTML=`<b>${c.name}</b><small>${c.small}</small>`; b.setAttribute("aria-current",current&&current.key===c.id?"true":"false"); b.onclick=()=>show(c); listEl.appendChild(b); });
+}
+document.querySelectorAll(".tabs button").forEach(t=>t.addEventListener("click",()=>{
+  sub=t.dataset.sub; document.querySelectorAll(".tabs button").forEach(x=>x.setAttribute("aria-selected",x===t?"true":"false")); renderList();
+  if((sub==="bio"||sub==="chem") && (!current || !CAT.some(c=>c.id===current.key&&c.sub===sub))) show(CAT.find(c=>c.sub===sub));
+}));
+
+/* Eigenes Modell */
+document.getElementById("upload").addEventListener("change",e=>{
+  const f=e.target.files[0]; if(!f) return; busy.hidden=false; busy.textContent="Modell wird geladen …";
+  if(/\.json$/i.test(f.name)){ f.text().then(t=>{ try{ const spec=JSON.parse(t); if(!spec||!Array.isArray(spec.teile)) throw 0; addGen(spec); }catch(_){ busy.textContent="Diese .json-Datei ist kein Modell aus dem Modellkoffer."; } }); e.target.value=""; return; }
+  const fr=new FileReader();
+  fr.onload=()=>{ new THREE.GLTFLoader().parse(fr.result,"",gltf=>{
+      const n=normalize(gltf.scene,.5); const key="own:"+f.name; current={key,hs:[],file:f,root:n.r}; setRoot(n.r,n.dims); renderHotspots(); busy.hidden=true;
+      document.body.classList.remove("chem-mode"); document.getElementById("scale").textContent="Größe im Raum: "+fmt(.5);
+      const nm=f.name.replace(/\.glb$/i,"").replace(/[<>&]/g,"");
+      info.innerHTML=`<div class="col"><span class="tag">Eigenes Modell</span><h2>${nm}</h2><p>Tippe auf <b>Eigene Beschriftung</b> und dann auf eine Stelle im Modell, um Strukturen zu benennen. Mit dem Quiz-Modus werden daraus Nummern zum Abfragen.</p></div>
+      <div class="col"><h3>Tipp</h3><ul><li>Achte auf die Lizenz (z. B. CC BY) und nenne die Quelle im Unterricht.</li><li>Große Dateien (über 20 MB) laden auf Schul-Tablets langsam.</li></ul></div>`;
+      prepareAR();
+    },err=>{ busy.textContent="Diese Datei ließ sich nicht öffnen. Bitte eine .glb-Datei wählen."; console.error(err); }); };
+  fr.readAsArrayBuffer(f);
+});
+
+/* Werkzeuge */
+const tb=id=>document.getElementById(id);
+tb("t-labels").onclick=e=>{ const on=e.currentTarget.getAttribute("aria-pressed")!=="true"; e.currentTarget.setAttribute("aria-pressed",on); stage.classList.toggle("nolabels",!on); };
+tb("t-quiz").onclick=e=>{ quiz=!quiz; e.currentTarget.setAttribute("aria-pressed",quiz); stage.classList.toggle("quiz",quiz); hsList.forEach(({el})=>{el.classList.remove("revealed");paint(el);}); };
+tb("t-rotate").setAttribute("aria-pressed",!reduce);
+tb("t-rotate").onclick=e=>{ controls.autoRotate=!controls.autoRotate; e.currentTarget.setAttribute("aria-pressed",controls.autoRotate); };
+tb("t-custom").onclick=e=>{ labelMode=!labelMode; e.currentTarget.setAttribute("aria-pressed",labelMode); tb("hint").hidden=!labelMode; tb("labelform").hidden=true;
+  if(labelMode){ controls.autoRotate=false; tb("t-rotate").setAttribute("aria-pressed",false);} };
+tb("t-full").onclick=async()=>{ try{ if(document.fullscreenElement) await document.exitFullscreen(); else await stage.requestFullscreen(); }catch(_){ tb("t-full").textContent="Vollbild hier nicht möglich"; } };
+
+const ray=new THREE.Raycaster(); let down=null;
+renderer.domElement.addEventListener("pointerdown",e=>{ down=[e.clientX,e.clientY]; });
+renderer.domElement.addEventListener("pointerup",e=>{
+  if(!labelMode||!root||!down) return; if(Math.hypot(e.clientX-down[0],e.clientY-down[1])>6) return;
+  const r=renderer.domElement.getBoundingClientRect(); ray.setFromCamera({x:(e.clientX-r.left)/r.width*2-1,y:-(e.clientY-r.top)/r.height*2+1},camera);
+  const hit=ray.intersectObject(root,true)[0]; if(!hit) return;
+  pending=root.worldToLocal(hit.point.clone()); tb("hint").hidden=true; tb("labelform").hidden=false; tb("labelinput").value=""; tb("labelinput").focus();
+});
+tb("labelform").addEventListener("submit",e=>{
+  e.preventDefault(); const name=tb("labelinput").value.trim(); if(!name||!pending||!current) return;
+  const arr=custom.get(current.key)||[]; arr.push({n:name,p:pending}); custom.set(current.key,arr);
+  pending=null; tb("labelform").hidden=true; tb("hint").hidden=false; renderHotspots();
+});
+
+/* AR: nur auf eigener Webseite im Handy-Browser */
+const armsg=tb("armsg"), arbtn=tb("arbtn"); let armv=null, arReady=false, arUrls=new Map();
+function arUnavailable(){ arbtn.hidden=true; armsg.hidden=false; armsg.textContent=AR_MSG; }
+async function prepareAR(){
+  arbtn.hidden=true; if(!current||current.embed){ return; }
+  if(!armv){ arUnavailable(); return; }
+  try{
+    let url;
+    if(current.file) url=URL.createObjectURL(current.file);
+    else if(current.glb) url=URL.createObjectURL(new Blob([current.glb],{type:"model/gltf-binary"}));
+    else { if(!arUrls.has(current.key)){ const glb=await new THREE.GLTFExporter().parseAsync(current.root,{binary:true}); arUrls.set(current.key,URL.createObjectURL(new Blob([glb],{type:"model/gltf-binary"}))); } url=arUrls.get(current.key); }
+    armv.src=url;
+  }catch(e){ arUnavailable(); }
+}
+function initAR(){
+  if(!customElements.get("model-viewer")) { arUnavailable(); return; }
+  armv=document.createElement("model-viewer"); armv.id="armv"; armv.setAttribute("ar",""); armv.setAttribute("ar-modes","webxr quick-look"); armv.setAttribute("ar-placement","floor"); armv.setAttribute("loading","eager");
+  armv.addEventListener("load",()=>{ if(armv.canActivateAR){ arbtn.hidden=false; armsg.hidden=true; } else arUnavailable(); });
+  armv.addEventListener("error",arUnavailable);
+  stage.appendChild(armv); if(current) prepareAR();
+}
+arbtn.onclick=()=>{ try{ armv.activateAR(); }catch(_){ arUnavailable(); } };
+const mvScript=document.createElement("script"); mvScript.type="module"; mvScript.src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js";
+mvScript.onload=()=>customElements.whenDefined("model-viewer").then(initAR); mvScript.onerror=arUnavailable; document.head.appendChild(mvScript);
+setTimeout(()=>{ if(!armv) arUnavailable(); },6000);
+
+/* ---------- Generator ---------- */
+const GEO={kugel:()=>new THREE.SphereGeometry(.5,32,20),box:()=>new THREE.BoxGeometry(1,1,1),zylinder:()=>new THREE.CylinderGeometry(.5,.5,1,28),kegel:()=>new THREE.ConeGeometry(.5,1,28),kapsel:()=>new THREE.CapsuleGeometry(.5,1,10,24),torus:()=>new THREE.TorusGeometry(.5,.1,12,48)};
+const num=(v,d=0)=>Number.isFinite(+v)?+v:d;
+const vec=(a,d=[0,0,0])=>Array.isArray(a)&&a.length>=3?a.slice(0,3).map((x,i)=>num(x,d[i])):d;
+function buildFromSpec(spec){
+  const g=new THREE.Group(), H=[], deg=Math.PI/180;
+  (Array.isArray(spec.teile)?spec.teile:[]).slice(0,150).forEach(t=>{
+    if(!t||typeof t!=="object") return;
+    const color=/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(t.farbe)?t.farbe:"#9AA5A0";
+    const op=t.transparent!=null&&Number.isFinite(+t.transparent)?Math.min(.9,Math.max(.1,+t.transparent)):null; const mat=M(color,op);
+    const make=mx=>{
+      let m;
+      if(t.form==="rohr"){ const pts=(Array.isArray(t.punkte)?t.punkte:[]).filter(Array.isArray).slice(0,12).map(q=>{const v=vec(q);return V(v[0]*mx,v[1],v[2]);}); if(pts.length<2) return;
+        const r=Math.max(.003,num(t.dicke,.05)/2); m=pts.length===2?cyl(pts[0],pts[1],r,mat,16):new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),pts.length*12,r,12),mat);
+      } else { m=new THREE.Mesh((Object.prototype.hasOwnProperty.call(GEO,t.form)?GEO[t.form]:GEO.kugel)(),mat); const q=vec(t.pos), sc=vec(t.groesse,[1,1,1]), r=vec(t.rot);
+        m.position.set(q[0]*mx,q[1],q[2]); m.scale.set(...sc.map(x=>Math.max(.001,Math.abs(x)))); m.rotation.set(r[0]*deg,r[1]*deg*mx,r[2]*deg*mx); }
+      g.add(m);
+    };
+    make(1); if(t.spiegeln===true) make(-1);
+  });
+  (Array.isArray(spec.beschriftungen)?spec.beschriftungen:[]).slice(0,16).forEach(b=>{ if(b&&b.name) H.push([String(b.name).slice(0,40),V(...vec(b.pos))]); });
+  if(!g.children.length) throw new Error("leer");
+  return {g,H};
+}
+function specItem(spec,id){
+  return {id,sub:"gen",spec,name:String(spec.name||"Neues Modell").slice(0,60),small:String(spec.kurz||"").slice(0,80),
+    size:Math.min(.8,Math.max(.15,num(spec.groesse_m,.4))),text:String(spec.text||"").slice(0,600),
+    tips:(Array.isArray(spec.tipps)?spec.tipps:[]).slice(0,4).map(x=>String(x).slice(0,200)),build:()=>buildFromSpec(spec)};
+}
+const RULES=`Antworte NUR mit einem JSON-Objekt in genau dieser Form:
+{"name":"...","kurz":"...","text":"2 bis 3 Sätze","tipps":["...","..."],"groesse_m":0.4,
+ "teile":[{"form":"kugel","farbe":"#a0b0c0","pos":[0,0,0],"groesse":[1,1,1],"rot":[0,0,0]}],
+ "beschriftungen":[{"name":"Fachbegriff","pos":[0,0,0]}]}
+Regeln:
+- Koordinaten: y zeigt nach oben, +z ist vorne. Das ganze Modell passt etwa in den Würfel von -1 bis 1.
+- Formen bei groesse [1,1,1]: "kugel" Durchmesser 1; "box" Kantenlänge 1; "zylinder" Durchmesser 1, Höhe 1 entlang y; "kegel" Durchmesser 1 unten, Höhe 1, Spitze nach +y; "kapsel" Durchmesser 1, Gesamthöhe 2 entlang y; "torus" Ringdurchmesser 1, Rohrdicke 0.2, liegt in der x-y-Ebene; "rohr" hat statt pos/groesse/rot die Felder "punkte" (2 bis 8 Punkte [x,y,z], weich verbunden) und "dicke" (Durchmesser) – ideal für Beine, Hälse, Fühler, Adern, Bindungen.
+- "groesse" streckt je Achse, "rot" dreht in Grad um x, y, z (Reihenfolge XYZ), "pos" ist der Mittelpunkt.
+- "spiegeln": true fügt eine an x=0 gespiegelte Kopie hinzu (für paarige Teile wie Augen, Flügel, Beine). Paarige Teile dann nur einmal mit x>0 angeben.
+- "transparent": 0.2 bis 0.6 nur für durchscheinende Hüllen wie Membranen, sonst weglassen.
+- 15 bis 60 Teile. Natürliche Farben, korrekte Proportionen und Anordnung. Alle Teile berühren oder überlappen sich, nichts schwebt lose.
+- 4 bis 10 Beschriftungen mit korrekten deutschen Fachbegriffen auf Gymnasialniveau; pos liegt auf der Oberfläche des gemeinten Teils.
+- "kurz": wissenschaftlicher Name, Formel oder Kurzbeschreibung. "tipps": 2 bis 3 Ideen für den Unterricht. "groesse_m": Darstellungsgröße auf dem Tisch, 0.2 bis 0.8.
+- Alle Texte auf Deutsch.`;
+const genPrompt=q=>`Du baust ein schematisches 3D-Unterrichtsmodell für Biologie oder Chemie am Gymnasium aus einfachen Grundformen.\nThema: "${q}"\n\n${RULES}`;
+const refinePrompt=(spec,change)=>`Hier ist ein 3D-Unterrichtsmodell als JSON:\n${JSON.stringify(spec)}\n\nÄndere es so: "${change}". Behalte alles andere bei.\nGib das vollständige geänderte Modell zurück.\n\n${RULES}`;
+
+let GEN=[]; try{ GEN=(JSON.parse(localStorage.getItem("mkGen")||"[]")||[]).map(o=>specItem(o.spec,o.id)); }catch(_){ GEN=[]; }
+function saveGen(){ try{ localStorage.setItem("mkGen",JSON.stringify(GEN.slice(0,20).map(i=>({id:i.id,spec:i.spec})))); }catch(_){ } }
+function renderGen(){
+  const el=document.getElementById("glist"); el.innerHTML="";
+  GEN.forEach(it=>{ const b=document.createElement("button"); b.type="button"; b.className="item gen"; b.dataset.id=it.id;
+    b.innerHTML=`<b>${esc(it.name)}</b><small>${esc(it.small)}</small>`; b.setAttribute("aria-current",current&&current.key===it.id?"true":"false"); b.onclick=()=>show(it); el.appendChild(b); });
+}
+function addGen(spec){ const it=specItem(spec,"gen:"+Date.now()); it.build(); GEN.unshift(it); GEN=GEN.slice(0,20); saveGen(); renderGen(); show(it); return it; }
+
+const gq=tb("gq"), gbtn=tb("gbtn"), gstop=tb("gstop"), gnote=tb("gnote"), rbtn=tb("rbtn");
+["Graureiher","Honigbiene","Nervenzelle","Laubblatt im Querschnitt","Chloroplast","Wasserstoffbrücken zwischen Wassermolekülen"].forEach(t=>{ const c=document.createElement("button"); c.type="button"; c.textContent=t; c.onclick=()=>{ gq.value=t; gq.focus(); }; tb("gchips").appendChild(c); });
+let sampleFn=null, dl=null, gctl=null;
+let manual=false;
+function genUnavailable(){ manual=true; gbtn.disabled=rbtn.disabled=false; gbtn.textContent="Auftrag kopieren"; rbtn.textContent="Kopieren";
+  tb("manual").hidden=false; gnote.className="snote"; gnote.textContent="Die direkte Verbindung zu Claude ist hier nicht verfügbar. Du kannst das Modell trotzdem in drei Schritten erstellen lassen:"; }
+async function copyPrompt(text){
+  const ta=tb("mprompt"); ta.value=text;
+  try{ await navigator.clipboard.writeText(text); ta.hidden=true; gnote.textContent="Auftrag kopiert. Jetzt in einem Claude-Chat einfügen und senden, dann die Antwort unten einfügen."; }
+  catch(_){ ta.hidden=false; ta.focus(); ta.select(); gnote.textContent="Bitte den markierten Auftrag selbst kopieren (gedrückt halten → Kopieren)."; }
+}
+function parseSpec(t){ const a=t.indexOf("{"), b=t.lastIndexOf("}"); if(a<0||b<=a) throw 0; const spec=JSON.parse(t.slice(a,b+1)); if(!spec||!Array.isArray(spec.teile)||!spec.teile.length) throw 0; return spec; }
+tb("mshow").onclick=()=>{ const t=tb("mpaste").value; try{ addGen(parseSpec(t)); tb("mpaste").value=""; gnote.className="snote"; gnote.textContent="Fertig. Mit „Anpassen“ kannst du Änderungen als neuen Auftrag kopieren."; }
+  catch(_){ gnote.className="snote err"; gnote.textContent="Das sieht nicht nach einer vollständigen Modell-Antwort aus. Bitte Claudes ganze Antwort einfügen."; } };
+(async()=>{
+  if(!window.claude||typeof window.claude.use!=="function"){ genUnavailable(); tb("gsave").hidden=true; return; }
+  try{ sampleFn=await window.claude.use("sample"); }catch(_){ sampleFn=null; }
+  try{ dl=await window.claude.use("downloads"); }catch(_){ dl=null; }
+  if(!sampleFn) genUnavailable(); if(!dl) tb("gsave").hidden=true;
+})();
+const ERR={cancelled:"Abgebrochen.",not_granted:"Du hast Claude für diese Seite nicht erlaubt. Ohne Erlaubnis kann kein Modell erstellt werden.",sampling_disabled:"Claude ist für dein Konto hier nicht verfügbar.",
+  rate_limited:"Gerade zu viele Anfragen oder dein Nutzungslimit ist erreicht. Bitte später nochmal.",session_expired:"Bitte melde dich in Claude neu an.",
+  invalid_json:"Das Modell kam unvollständig zurück. Versuch es nochmal oder mit einem einfacheren Thema.",refused:"Dazu erstellt Claude kein Modell. Bitte wähle ein anderes Thema.",
+  empty_completion:"Es kam keine Antwort. Versuch es mit einer kürzeren Beschreibung."};
+async function generate(input,label){
+  if(!sampleFn){ gnote.className="snote"; gnote.textContent="Verbindung zu Claude wird noch aufgebaut. Bitte in ein paar Sekunden nochmal tippen."; return; } gctl=new AbortController(); gbtn.disabled=rbtn.disabled=true; gstop.hidden=false;
+  gnote.className="snote"; gnote.textContent="Claude denkt nach …"; busy.hidden=false; busy.textContent=label;
+  try{
+    const spec=await sampleFn.json(input,{signal:gctl.signal,cache:false,onText:({text})=>{ const n=(text.match(/"(form)"/g)||[]).length; gnote.textContent=`Claude baut … ${n} Teile`; busy.textContent=`${label} · ${n} Teile`; }});
+    if(!spec||typeof spec!=="object"||!Array.isArray(spec.teile)||!spec.teile.length) throw {code:"invalid_json"};
+    addGen(spec); gnote.textContent="Fertig. Du kannst das Modell anpassen, beschriften oder speichern.";
+  }catch(e){ busy.hidden=true; if(e&&["not_granted","sampling_disabled","capability_disabled","capability_removed","not_declared"].includes(e.code)){ genUnavailable(); return; } gnote.className="snote"+(e&&e.code==="cancelled"?"":" err"); gnote.textContent=ERR[e&&e.code]||"Das hat nicht geklappt. Bitte nochmal versuchen."; if(e&&!e.code) console.error(e); }
+  finally{ gbtn.disabled=rbtn.disabled=!(sampleFn||manual); gstop.hidden=true; }
+}
+tb("gform").addEventListener("submit",e=>{ e.preventDefault(); const q=gq.value.trim(); if(!q) return; if(manual) return copyPrompt(genPrompt(q)); generate(genPrompt(q),"Claude erstellt „"+q.slice(0,40)+"“ …"); });
+tb("rform").addEventListener("submit",e=>{ e.preventDefault(); const c=tb("rq").value.trim(); const spec=current&&current.item&&current.item.spec; if(c&&spec){ tb("rq").value=""; if(manual) return copyPrompt(refinePrompt(spec,c)); generate(refinePrompt(spec,c),"Claude passt das Modell an …"); } });
+gstop.onclick=()=>{ if(gctl) gctl.abort(); };
+tb("gsave").onclick=async()=>{
+  const it=current&&current.item; if(!it||!it.spec||!dl) return;
+  const fn=(it.name.toLowerCase().replace(/[^a-z0-9äöüß]+/g,"-").replace(/^-|-$/g,"")||"modell")+".json";
+  try{ await dl.save({filename:fn,data:JSON.stringify(it.spec,null,1)}); gnote.className="snote"; gnote.textContent="Gespeichert. Auf deiner Netlify-Seite unter „Eigene“ öffnen, dann geht auch AR."; }
+  catch(e){ if(e&&e.code!=="declined"){ gnote.className="snote err"; gnote.textContent="Speichern ist hier nicht möglich."; } }
+};
+renderGen();
+
+renderList(); show(CAT[0]);
+</script>
+
+</body></html>
