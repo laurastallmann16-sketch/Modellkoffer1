@@ -71,7 +71,13 @@ h1 span{color:var(--bio)}
 .grow button:disabled,.sform button:disabled{opacity:.5;cursor:wait}
 button.ghost,#gsave{background:transparent;color:var(--fg);border:1px solid var(--line)}
 .glist{display:grid;gap:6px}
-.glist:not(:empty)::before{content:"Deine erstellten Modelle";font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+#gmatch:empty{display:none}
+.tok summary{cursor:pointer;font-weight:700;font-size:.9rem}
+.tok p{margin:8px 0;font-size:.88rem}
+.tok a{color:var(--bio)}
+#keyrm{margin-top:6px;font:700 .85rem var(--body);background:transparent;color:var(--fg);border:1px solid var(--line);padding:6px 10px;border-radius:8px;cursor:pointer}
+#gstop{justify-self:start;font:700 .85rem var(--body);background:transparent;color:var(--fg);border:1px solid var(--line);padding:6px 12px;border-radius:8px;cursor:pointer}
+#glist:not(:empty)::before{content:"Deine erstellten Modelle";font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .item.gen[aria-current="true"]{color:#B45309;background:var(--stage)}
 /* Bühne *//* Bühne */
 .stagecol{display:grid;gap:12px;min-width:0}
@@ -130,36 +136,40 @@ button:focus-visible,a:focus-visible,label.file:focus-within{outline:3px solid v
       <div class="tabs" role="tablist">
         <button role="tab" id="tab-bio" data-sub="bio" aria-selected="true">Biologie</button>
         <button role="tab" id="tab-chem" data-sub="chem" aria-selected="false">Chemie</button>
-        <button role="tab" id="tab-gen" data-sub="gen" aria-selected="false">Erstellen</button>
+        <button role="tab" id="tab-gen" data-sub="gen" aria-selected="false">Suchen</button>
         <button role="tab" id="tab-own" data-sub="own" aria-selected="false">Eigene</button>
       </div>
       <div class="list" id="list"></div>
       <div class="own gen" id="genbox" hidden>
         <form id="gform" class="gform">
-          <label for="gq"><b>Was soll Claude bauen?</b></label>
-          <textarea id="gq" rows="3" maxlength="300" placeholder="z. B. Graureiher, Honigbiene, Nervenzelle, Querschnitt durch ein Laubblatt"></textarea>
+          <label for="gq"><b>Organismus, Struktur oder Molekül</b></label>
+          <div class="sform"><input id="gq" type="search" maxlength="120" placeholder="z. B. Graureiher, Mitochondrium, Glucose" autocomplete="off"><button type="submit" id="gbtn">Erstellen</button></div>
+          <div class="glist" id="gmatch"></div>
           <div class="chips" id="gchips"></div>
-          <div class="grow"><button type="submit" id="gbtn">Modell erstellen</button><button type="button" id="gstop" class="ghost" hidden>Stopp</button></div>
+          <button type="button" id="gstop" class="ghost" hidden>Stopp</button>
         </form>
-        <div class="snote" id="gnote">Claude baut das Modell aus Grundformen und beschriftet es mit Fachbegriffen. Das dauert etwa 20 bis 60 Sekunden.</div>
+        <div class="snote" id="gnote">Findet vorhandene Modelle. Gibt es noch keins, baut die KI ein neues aus Grundformen und beschriftet es mit Fachbegriffen.</div>
         <form id="rform" class="gform" hidden>
           <label for="rq"><b>Anpassen</b></label>
           <div class="sform"><input id="rq" maxlength="200" placeholder="z. B. Hals länger, Beine gelb" autocomplete="off"><button type="submit" id="rbtn">Ändern</button></div>
           <button type="button" id="gsave" class="ghost">Als Datei speichern (.json)</button>
         </form>
-        <div class="gform" id="manual" hidden>
-          <div class="snote"><b>So geht's:</b> 1. Oben das Thema eingeben und „Auftrag kopieren“ tippen. 2. In einem neuen Claude-Chat einfügen und senden. 3. Claudes Antwort komplett kopieren und hier einfügen.</div>
-          <textarea id="mprompt" rows="3" readonly hidden aria-label="Auftrag zum Kopieren"></textarea>
-          <textarea id="mpaste" rows="4" placeholder="Antwort von Claude hier einfügen" aria-label="Antwort von Claude"></textarea>
-          <div class="grow"><button type="button" id="mshow">Modell anzeigen</button></div>
-        </div>
+        <details class="tok" id="keybox">
+          <summary>KI-Schlüssel einrichten</summary>
+          <p>Auf deiner eigenen Webseite braucht die App einmalig einen Schlüssel, damit sie selbst Modelle erstellen kann. Er wird nur auf diesem Gerät gespeichert, nicht im Internet.</p>
+          <p><b>Kostenlos:</b> Gemini-Schlüssel bei <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> (mit Google-Konto anmelden, „Create API key“).</p>
+          <p><b>Claude:</b> Schlüssel bei <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>. Kostet ein paar Cent pro Modell, Guthaben nötig.</p>
+          <form id="keyform" class="sform"><input id="keyin" type="password" placeholder="Schlüssel einfügen" autocomplete="off" aria-label="KI-Schlüssel"><button type="submit">Speichern</button></form>
+          <div class="snote" id="keynote"></div>
+          <button type="button" id="keyrm" class="ghost" hidden>Schlüssel löschen</button>
+        </details>
         <div class="glist" id="glist"></div>
       </div>
       <div class="own" id="ownbox" hidden>
         <label class="file">Eigenes Modell öffnen (.glb oder .json)
           <input type="file" id="upload" accept=".glb,.json,model/gltf-binary,application/json">
         </label>
-        <div>Hier öffnest du Modelle, die du unter „Erstellen“ gespeichert hast (.json), oder fertige 3D-Modelle (.glb), z. B. von:</div>
+        <div>Hier öffnest du Modelle, die du unter „Suchen“ gespeichert hast (.json), oder fertige 3D-Modelle (.glb), z. B. von:</div>
         <ul>
           <li><a href="https://3d.nih.gov" target="_blank" rel="noopener">NIH 3D</a> – Proteine, Anatomie, Viren</li>
           <li><a href="https://3d.si.edu" target="_blank" rel="noopener">Smithsonian 3D</a> – Fossilien, Tiere, Pflanzen</li>
@@ -580,47 +590,105 @@ function renderGen(){
 function addGen(spec){ const it=specItem(spec,"gen:"+Date.now()); it.build(); GEN.unshift(it); GEN=GEN.slice(0,20); saveGen(); renderGen(); show(it); return it; }
 
 const gq=tb("gq"), gbtn=tb("gbtn"), gstop=tb("gstop"), gnote=tb("gnote"), rbtn=tb("rbtn");
-["Graureiher","Honigbiene","Nervenzelle","Laubblatt im Querschnitt","Chloroplast","Wasserstoffbrücken zwischen Wassermolekülen"].forEach(t=>{ const c=document.createElement("button"); c.type="button"; c.textContent=t; c.onclick=()=>{ gq.value=t; gq.focus(); }; tb("gchips").appendChild(c); });
-let sampleFn=null, dl=null, gctl=null;
-let manual=false;
-function genUnavailable(){ manual=true; gbtn.disabled=rbtn.disabled=false; gbtn.textContent="Auftrag kopieren"; rbtn.textContent="Kopieren";
-  tb("manual").hidden=false; gnote.className="snote"; gnote.textContent="Die direkte Verbindung zu Claude ist hier nicht verfügbar. Du kannst das Modell trotzdem in drei Schritten erstellen lassen:"; }
-async function copyPrompt(text){
-  const ta=tb("mprompt"); ta.value=text;
-  try{ await navigator.clipboard.writeText(text); ta.hidden=true; gnote.textContent="Auftrag kopiert. Jetzt in einem Claude-Chat einfügen und senden, dann die Antwort unten einfügen."; }
-  catch(_){ ta.hidden=false; ta.focus(); ta.select(); gnote.textContent="Bitte den markierten Auftrag selbst kopieren (gedrückt halten → Kopieren)."; }
+["Graureiher","Honigbiene","Nervenzelle","Laubblatt im Querschnitt","Chloroplast","Regenwurm"].forEach(t=>{ const c=document.createElement("button"); c.type="button"; c.textContent=t; c.onclick=()=>{ gq.value=t; findMatches(); gq.focus(); }; tb("gchips").appendChild(c); });
+
+/* Suche in vorhandenen Modellen */
+const norm=x=>String(x||"").toLowerCase().replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss").replace(/[^a-z0-9]+/g," ").trim();
+const allModels=()=>[...GEN,...CAT];
+function findMatches(){
+  const q=norm(gq.value), box=tb("gmatch"); box.innerHTML="";
+  gbtn.textContent=q?"Neu erstellen":"Erstellen";
+  if(q.length<2) return [];
+  const hits=allModels().filter(m=>norm(m.name+" "+m.small).includes(q)).slice(0,5);
+  hits.forEach(it=>{ const b=document.createElement("button"); b.type="button"; b.className="item "+it.sub; b.dataset.id=it.id;
+    b.innerHTML=`<b>${esc(it.name)}</b><small>Schon vorhanden · ${esc(it.small)}</small>`; b.onclick=()=>show(it); box.appendChild(b); });
+  return hits;
 }
-function parseSpec(t){ const a=t.indexOf("{"), b=t.lastIndexOf("}"); if(a<0||b<=a) throw 0; const spec=JSON.parse(t.slice(a,b+1)); if(!spec||!Array.isArray(spec.teile)||!spec.teile.length) throw 0; return spec; }
-tb("mshow").onclick=()=>{ const t=tb("mpaste").value; try{ addGen(parseSpec(t)); tb("mpaste").value=""; gnote.className="snote"; gnote.textContent="Fertig. Mit „Anpassen“ kannst du Änderungen als neuen Auftrag kopieren."; }
-  catch(_){ gnote.className="snote err"; gnote.textContent="Das sieht nicht nach einer vollständigen Modell-Antwort aus. Bitte Claudes ganze Antwort einfügen."; } };
-(async()=>{
-  if(!window.claude||typeof window.claude.use!=="function"){ genUnavailable(); tb("gsave").hidden=true; return; }
+gq.addEventListener("input",findMatches);
+
+/* KI-Schlüssel (nur auf diesem Gerät) */
+const getKey=()=>{ try{ return localStorage.getItem("mkKey")||""; }catch(_){ return ""; } };
+const keyKind=k=>k.startsWith("sk-ant-")?"Claude":k.startsWith("AIza")?"Gemini":"";
+function keyStatus(){ const k=getKey(), kind=keyKind(k); tb("keynote").textContent=k?`Schlüssel für ${kind||"unbekannten Anbieter"} ist auf diesem Gerät gespeichert.`:"Noch kein Schlüssel gespeichert."; tb("keyrm").hidden=!k; }
+tb("keyform").addEventListener("submit",e=>{ e.preventDefault(); const v=tb("keyin").value.trim();
+  if(!keyKind(v)){ tb("keynote").textContent="Das sieht nicht nach einem Schlüssel aus. Claude-Schlüssel beginnen mit „sk-ant-“, Gemini-Schlüssel mit „AIza“."; return; }
+  try{ localStorage.setItem("mkKey",v); tb("keyin").value=""; keyStatus(); gnote.className="snote"; gnote.textContent="Schlüssel gespeichert. Jetzt kannst du Modelle erstellen."; }
+  catch(_){ tb("keynote").textContent="Speichern geht hier nicht (privates Fenster?). Bitte in einem normalen Safari-Tab öffnen."; } });
+tb("keyrm").onclick=()=>{ try{ localStorage.removeItem("mkKey"); }catch(_){ } keyStatus(); };
+keyStatus();
+
+/* Verbindung: in der Claude-App direkt, sonst mit eigenem Schlüssel */
+let sampleFn=null, dl=null, gctl=null;
+const ready=(async()=>{
+  if(!window.claude||typeof window.claude.use!=="function") return;
   try{ sampleFn=await window.claude.use("sample"); }catch(_){ sampleFn=null; }
   try{ dl=await window.claude.use("downloads"); }catch(_){ dl=null; }
-  if(!sampleFn) genUnavailable(); if(!dl) tb("gsave").hidden=true;
 })();
-const ERR={cancelled:"Abgebrochen.",not_granted:"Du hast Claude für diese Seite nicht erlaubt. Ohne Erlaubnis kann kein Modell erstellt werden.",sampling_disabled:"Claude ist für dein Konto hier nicht verfügbar.",
-  rate_limited:"Gerade zu viele Anfragen oder dein Nutzungslimit ist erreicht. Bitte später nochmal.",session_expired:"Bitte melde dich in Claude neu an.",
-  invalid_json:"Das Modell kam unvollständig zurück. Versuch es nochmal oder mit einem einfacheren Thema.",refused:"Dazu erstellt Claude kein Modell. Bitte wähle ein anderes Thema.",
-  empty_completion:"Es kam keine Antwort. Versuch es mit einer kürzeren Beschreibung."};
-async function generate(input,label){
-  if(!sampleFn){ gnote.className="snote"; gnote.textContent="Verbindung zu Claude wird noch aufgebaut. Bitte in ein paar Sekunden nochmal tippen."; return; } gctl=new AbortController(); gbtn.disabled=rbtn.disabled=true; gstop.hidden=false;
-  gnote.className="snote"; gnote.textContent="Claude denkt nach …"; busy.hidden=false; busy.textContent=label;
-  try{
-    const spec=await sampleFn.json(input,{signal:gctl.signal,cache:false,onText:({text})=>{ const n=(text.match(/"(form)"/g)||[]).length; gnote.textContent=`Claude baut … ${n} Teile`; busy.textContent=`${label} · ${n} Teile`; }});
-    if(!spec||typeof spec!=="object"||!Array.isArray(spec.teile)||!spec.teile.length) throw {code:"invalid_json"};
-    addGen(spec); gnote.textContent="Fertig. Du kannst das Modell anpassen, beschriften oder speichern.";
-  }catch(e){ busy.hidden=true; if(e&&["not_granted","sampling_disabled","capability_disabled","capability_removed","not_declared"].includes(e.code)){ genUnavailable(); return; } gnote.className="snote"+(e&&e.code==="cancelled"?"":" err"); gnote.textContent=ERR[e&&e.code]||"Das hat nicht geklappt. Bitte nochmal versuchen."; if(e&&!e.code) console.error(e); }
-  finally{ gbtn.disabled=rbtn.disabled=!(sampleFn||manual); gstop.hidden=true; }
+function parseSpec(t){ const s=String(t||""), a=s.indexOf("{"), b=s.lastIndexOf("}"); if(a<0||b<=a) throw {code:"invalid_json"};
+  let spec; try{ spec=JSON.parse(s.slice(a,b+1)); }catch(_){ throw {code:"invalid_json"}; }
+  if(!spec||!Array.isArray(spec.teile)||!spec.teile.length) throw {code:"invalid_json"}; return spec; }
+async function viaClaudeKey(key,prompt,signal){
+  const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",signal,headers:{"content-type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+    body:JSON.stringify({model:"claude-sonnet-5-5",max_tokens:8000,messages:[{role:"user",content:prompt}]})});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok) throw {code:r.status===401||r.status===403?"badkey":r.status===429||r.status===529?"rate_limited":r.status===400&&/credit/i.test(j.error&&j.error.message||"")?"nocredit":"api",message:j.error&&j.error.message};
+  return (j.content||[]).filter(c=>c.type==="text").map(c=>c.text).join("");
 }
-tb("gform").addEventListener("submit",e=>{ e.preventDefault(); const q=gq.value.trim(); if(!q) return; if(manual) return copyPrompt(genPrompt(q)); generate(genPrompt(q),"Claude erstellt „"+q.slice(0,40)+"“ …"); });
-tb("rform").addEventListener("submit",e=>{ e.preventDefault(); const c=tb("rq").value.trim(); const spec=current&&current.item&&current.item.spec; if(c&&spec){ tb("rq").value=""; if(manual) return copyPrompt(refinePrompt(spec,c)); generate(refinePrompt(spec,c),"Claude passt das Modell an …"); } });
+async function viaGemini(key,prompt,signal){
+  for(const m of ["gemini-flash-latest","gemini-3-flash-preview","gemini-2.5-flash"]){
+    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${encodeURIComponent(key)}`,{method:"POST",signal,headers:{"content-type":"application/json"},
+      body:JSON.stringify({contents:[{role:"user",parts:[{text:prompt}]}],generationConfig:{responseMimeType:"application/json",maxOutputTokens:16384,temperature:0.4}})});
+    if(r.status===404) continue;
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok){ const msg=j.error&&j.error.message||""; throw {code:/api key/i.test(msg)||r.status===403?"badkey":r.status===429?"rate_limited":"api",message:msg}; }
+    const c=j.candidates&&j.candidates[0]; if(!c) throw {code:"refused"};
+    return (c.content&&c.content.parts||[]).map(p=>p.text||"").join("");
+  }
+  throw {code:"api",message:"Kein Gemini-Modell gefunden."};
+}
+async function callAI(prompt,signal,progress){
+  await ready;
+  if(sampleFn){
+    try{ return await sampleFn.json(prompt,{signal,cache:false,onText:({text})=>progress((text.match(/"form"/g)||[]).length)}); }
+    catch(e){ if(!(e&&["not_granted","sampling_disabled","capability_disabled","capability_removed","not_declared"].includes(e.code))) throw e; sampleFn=null; }
+  }
+  const key=getKey(); if(!key) throw {code:"nokey"};
+  const text=keyKind(key)==="Claude"?await viaClaudeKey(key,prompt,signal):await viaGemini(key,prompt,signal);
+  return parseSpec(text);
+}
+const ERR={cancelled:"Abgebrochen.",nokey:"Damit die Seite selbst Modelle erstellen kann, braucht sie einmalig einen KI-Schlüssel. Richte ihn unten unter „KI-Schlüssel einrichten“ ein.",
+  badkey:"Der KI-Schlüssel wurde abgelehnt. Bitte prüfe ihn unter „KI-Schlüssel einrichten“.",nocredit:"Dein Claude-Konto hat kein Guthaben mehr. Lade unter console.anthropic.com Guthaben auf oder nutze einen kostenlosen Gemini-Schlüssel.",
+  rate_limited:"Gerade zu viele Anfragen oder dein Tageslimit ist erreicht. Bitte in ein paar Minuten nochmal.",session_expired:"Bitte melde dich in Claude neu an.",
+  invalid_json:"Das Modell kam unvollständig zurück. Versuch es nochmal oder mit einem einfacheren Thema.",refused:"Dazu wird kein Modell erstellt. Bitte wähle ein anderes Thema.",
+  empty_completion:"Es kam keine Antwort. Versuch es mit einer kürzeren Beschreibung.",api:"Die KI hat einen Fehler gemeldet"};
+async function generate(prompt,label){
+  gctl=new AbortController(); gbtn.disabled=rbtn.disabled=true; gstop.hidden=false;
+  gnote.className="snote"; gnote.textContent="Die KI denkt nach … (etwa 20 bis 60 Sekunden)"; busy.hidden=false; busy.textContent=label;
+  try{
+    const spec=await callAI(prompt,gctl.signal,n=>{ gnote.textContent=`Wird gebaut … ${n} Teile`; busy.textContent=`${label} · ${n} Teile`; });
+    if(!spec||typeof spec!=="object"||!Array.isArray(spec.teile)||!spec.teile.length) throw {code:"invalid_json"};
+    addGen(spec); gq.value=""; findMatches(); gnote.textContent="Fertig. Du kannst das Modell anpassen, beschriften oder speichern.";
+  }catch(e){
+    busy.hidden=true; const code=e&&e.name==="AbortError"?"cancelled":e&&e.code;
+    gnote.className="snote"+(code==="cancelled"?"":" err");
+    gnote.textContent=code==="api"?`${ERR.api}${e.message?": "+String(e.message).slice(0,140):"."}`:(ERR[code]||"Keine Verbindung zur KI. Bitte Internet prüfen und nochmal versuchen.");
+    if(code==="nokey"||code==="badkey") tb("keybox").open=true;
+    if(!code) console.error(e);
+  }finally{ gbtn.disabled=rbtn.disabled=false; gstop.hidden=true; }
+}
+tb("gform").addEventListener("submit",e=>{ e.preventDefault(); const q=gq.value.trim(); if(!q) return;
+  const exact=allModels().find(m=>norm(m.name)===norm(q));
+  if(exact && gbtn.dataset.force!=="1"){ show(exact); gnote.className="snote"; gnote.textContent=`„${exact.name}“ gibt es schon. Tippe nochmal auf „Neu erstellen“, wenn du trotzdem ein neues Modell willst.`; gbtn.dataset.force="1"; return; }
+  gbtn.dataset.force=""; generate(genPrompt(q),"„"+q.slice(0,40)+"“ wird erstellt …"); });
+gq.addEventListener("input",()=>{ gbtn.dataset.force=""; });
+tb("rform").addEventListener("submit",e=>{ e.preventDefault(); const c=tb("rq").value.trim(); const spec=current&&current.item&&current.item.spec; if(c&&spec){ tb("rq").value=""; generate(refinePrompt(spec,c),"Modell wird angepasst …"); } });
 gstop.onclick=()=>{ if(gctl) gctl.abort(); };
 tb("gsave").onclick=async()=>{
-  const it=current&&current.item; if(!it||!it.spec||!dl) return;
-  const fn=(it.name.toLowerCase().replace(/[^a-z0-9äöüß]+/g,"-").replace(/^-|-$/g,"")||"modell")+".json";
-  try{ await dl.save({filename:fn,data:JSON.stringify(it.spec,null,1)}); gnote.className="snote"; gnote.textContent="Gespeichert. Auf deiner Netlify-Seite unter „Eigene“ öffnen, dann geht auch AR."; }
-  catch(e){ if(e&&e.code!=="declined"){ gnote.className="snote err"; gnote.textContent="Speichern ist hier nicht möglich."; } }
+  const it=current&&current.item; if(!it||!it.spec) return;
+  const fn=(it.name.toLowerCase().replace(/[^a-z0-9äöüß]+/g,"-").replace(/^-|-$/g,"")||"modell")+".json", data=JSON.stringify(it.spec,null,1);
+  await ready;
+  if(dl){ try{ await dl.save({filename:fn,data}); gnote.className="snote"; gnote.textContent="Gespeichert."; }catch(e){ if(e&&e.code!=="declined"){ gnote.className="snote err"; gnote.textContent="Speichern ist hier nicht möglich."; } } return; }
+  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([data],{type:"application/json"})); a.download=fn; document.body.appendChild(a); a.click(); a.remove();
 };
 renderGen();
 
